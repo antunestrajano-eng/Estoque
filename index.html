@@ -545,9 +545,18 @@
                 <div class="hd"><h2>Liberar para separação</h2></div>
                 <div class="bd">
                     <div id="resumoMsg"></div>
-                    <div class="filter-bar">
-                        <label for="resumoSelect">Selecione o resumo:</label>
-                        <select id="resumoSelect" class="filter-select" style="min-width: 320px;"></select>
+                    <div class="filter-bar" style="flex-wrap:wrap;gap:12px;">
+                        <div style="display:flex;flex-direction:column;gap:4px;">
+                            <label for="resumoSelect">Selecione o resumo:</label>
+                            <select id="resumoSelect" class="filter-select" style="min-width: 320px;"></select>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:4px;max-width:260px;">
+                            <label for="resumoIdBitrix" style="font-size:12px;">Ou buscar pelo ID do negócio (Bitrix):</label>
+                            <div style="display:flex;gap:6px;align-items:center;">
+                                <input id="resumoIdBitrix" type="text" placeholder="ex.: 12345" style="flex:1;min-width:120px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(0,0,0,.25);color:var(--text);font-size:13px;">
+                                <button type="button" class="btn btn-secondary" id="btnAdicionarResumoId" style="white-space:nowrap;">Buscar ID</button>
+                            </div>
+                        </div>
                     </div>
                     <div id="resumoFormWrap" style="display:none;">
                         <div style="margin-bottom:16px;">
@@ -948,6 +957,26 @@
         });
 
         document.getElementById('btnGerarResumo').addEventListener('click', gerarResumoAtualizado);
+
+        document.getElementById('btnAdicionarResumoId').addEventListener('click', function() {
+            var input = document.getElementById('resumoIdBitrix');
+            var id = (input.value || '').trim();
+            if (!id) { showMsg('resumoMsg', 'Informe o ID do negócio no Bitrix.', true); return; }
+            this.disabled = true;
+            var btn = this;
+            api('adicionar_resumo_por_id', { id: id }).then(function(res) {
+                btn.disabled = false;
+                if (!res.ok) {
+                    showMsg('resumoMsg', res.message || 'Erro ao buscar negócio no Bitrix.', true);
+                    return;
+                }
+                showMsg('resumoMsg', 'Resumo adicionado/atualizado para o ID ' + id + ' (' + (res.cliente || 'sem nome') + ').', false);
+                carregarResumos();
+            }).catch(function() {
+                btn.disabled = false;
+                showMsg('resumoMsg', 'Falha ao conectar.', true);
+            });
+        });
 
         document.getElementById('btnLiberar').addEventListener('click', function() {
             var id = document.getElementById('resumoSelect').value;
